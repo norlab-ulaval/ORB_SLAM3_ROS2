@@ -1,13 +1,17 @@
 #include "stereo-slam-node.hpp"
 
 #include<opencv2/core/core.hpp>
+#include <cv_bridge/cv_bridge.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 using std::placeholders::_1;
 using std::placeholders::_2;
 
 StereoSlamNode::StereoSlamNode(ORB_SLAM3::System* pSLAM, const string &strSettingsFile, const string &strDoRectify)
 :   Node("ORB_SLAM3_ROS2"),
-    m_SLAM(pSLAM)
+    m_SLAM(pSLAM),
 {
     stringstream ss(strDoRectify);
     ss >> boolalpha >> doRectify;
@@ -48,8 +52,15 @@ StereoSlamNode::StereoSlamNode(ORB_SLAM3::System* pSLAM, const string &strSettin
         cv::initUndistortRectifyMap(K_r,D_r,R_r,P_r.rowRange(0,3).colRange(0,3),cv::Size(cols_r,rows_r),CV_32F,M1r,M2r);
     }
 
-    left_sub = std::make_shared<message_filters::Subscriber<ImageMsg> >(shared_ptr<rclcpp::Node>(this), "camera/left");
-    right_sub = std::make_shared<message_filters::Subscriber<ImageMsg> >(shared_ptr<rclcpp::Node>(this), "camera/right");
+    pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+        "orbslam3/camera_pose", 10);
+
+
+    left_sub = std::make_shared< message_filters::Subscriber<ImageMsg> >(this, "zedx/left/image_rect");
+    right_sub = std::make_shared< message_filters::Subscriber<ImageMsg> >(this, "zedx/right/image_rect");
+
+    // left_sub = std::make_shared<message_filters::Subscriber<ImageMsg> >(shared_ptr<rclcpp::Node>(this), "camera/left");
+    // right_sub = std::make_shared<message_filters::Subscriber<ImageMsg> >(shared_ptr<rclcpp::Node>(this), "camera/right");
 
     syncApproximate = std::make_shared<message_filters::Synchronizer<approximate_sync_policy> >(approximate_sync_policy(10), *left_sub, *right_sub);
     syncApproximate->registerCallback(&StereoSlamNode::GrabStereo, this);
@@ -88,14 +99,42 @@ void StereoSlamNode::GrabStereo(const ImageMsg::SharedPtr msgLeft, const ImageMs
         return;
     }
 
+    Sophus::SE3f Tcw;
+
     if (doRectify){
         cv::Mat imLeft, imRight;
         cv::remap(cv_ptrLeft->image,imLeft,M1l,M2l,cv::INTER_LINEAR);
         cv::remap(cv_ptrRight->image,imRight,M1r,M2r,cv::INTER_LINEAR);
-        m_SLAM->TrackStereo(imLeft, imRight, Utility::StampToSec(msgLeft->header.stamp));
+        Tcw = m_SLAM->TrackStereo(imLeft, imRight, Utility::StampToSec(msgLeft->header.stamp));
     }
     else
     {
-        m_SLAM->TrackStereo(cv_ptrLeft->image, cv_ptrRight->image, Utility::StampToSec(msgLeft->header.stamp));
+        Tcw = m_SLAM->TrackStereo(cv_ptrLeft->image, cv_ptrRight->image, Utility::StampToSec(msgLeft->header.stamp));
+    }
+
+    if (Tcw.translation().norm() != 0)  // use translation norm as a simple check
+    {
+        Eigen::Matrix3f Rwc = Tcw.rotationMatrix().transpose();  // world <- camera
+        Eigen::Vector3f twc = -Rwc * Tcw.translation();
+
+        tf2::Matrix3x3 tf2_R(
+            Rwc(0,0), Rwc(0,1), Rwc(0,2),
+            Rwc(1,0), Rwc(1,1), Rwc(1,2),
+            Rwc(2,0), Rwc(2,1), Rwc(2,2)
+        );
+
+        tf2::Quaternion q;
+        tf2_R.getRotation(q);
+
+        geometry_msgs::msg::PoseStamped pose_msg;
+        pose_msg.header.stamp = msgLeft->header.stamp;
+        pose_msg.header.frame_id = "map";
+
+        pose_msg.pose.position.x = twc(0);
+        pose_msg.pose.position.y = twc(1);
+        pose_msg.pose.position.z = twc(2);
+        pose_msg.pose.orientation = tf2::toMsg(q);
+
+        pose_pub_->publish(pose_msg);
     }
 }

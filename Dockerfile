@@ -1,4 +1,5 @@
-FROM ros:humble-ros-base
+ARG from=ros:humble-ros-base
+FROM ${from}
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -47,22 +48,20 @@ RUN apt-get update && apt-get install -y \
     ros-humble-rosbag2-transport \
     ros-humble-rosbag2-storage-default-plugins
 
-RUN apt-get install -y tmux
-
 RUN mkdir -p /colcon_ws/src
 
 WORKDIR /colcon_ws/src
 RUN git clone -b humble https://github.com/norlab-ulaval/ORB_SLAM3_ROS2.git
 
 WORKDIR /colcon_ws
-RUN . /opt/ros/humble/setup.sh && colcon build --symlink-install --packages-select orbslam3 
+RUN  . /opt/ros/humble/setup.sh && colcon build --symlink-install
 
-RUN echo "\n\
-    source /opt/ros/humble/setup.bash\n\
-    source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash\n\
-    source /colcon_ws/install/local_setup.bash\n\
-    source /colcon_ws/install/setup.bash" >> /root/.bashrc
+WORKDIR /colcon_ws/src/ORB_SLAM3_ROS2/vocabulary
+RUN tar -xzvf ORBvoc.txt.tar.gz
 
-# ROS2 workspace
-WORKDIR /ros2_ws/src
+WORKDIR /colcon_ws/src
 
+ENV ROS_DOMAIN_ID=0
+STOPSIGNAL SIGINT
+
+CMD ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /colcon_ws/install/local_setup.bash && source /colcon_ws/install/setup.bash && ros2 run orbslam3 stereo /colcon_ws/src/ORB_SLAM3_ROS2/vocabulary/ORBvoc.txt /colcon_ws/src/ORB_SLAM3_ROS2/config/stereo/zedx.yaml false --ros-args -p use_sim_time:=true"]

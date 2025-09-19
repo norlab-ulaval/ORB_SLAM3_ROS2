@@ -34,7 +34,6 @@ private:
     ORB_SLAM3::System* m_SLAM;
 
     bool doRectify;
-    bool localization_active;
     cv::Mat M1l,M2l,M1r,M2r;
 
     cv_bridge::CvImageConstPtr cv_ptrLeft;

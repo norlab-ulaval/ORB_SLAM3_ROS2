@@ -49,15 +49,19 @@ RUN apt-get update && apt-get install -y \
 
 RUN apt-get install -y tmux
 
-WORKDIR /opt
-RUN git clone -b humble https://github.com/norlab-ulaval/ORB_SLAM3_ROS2.git && \
-    colcon build --symlink-install --packages-select orbslam3 
+RUN mkdir -p /colcon_ws/src
+
+WORKDIR /colcon_ws/src
+RUN git clone -b humble https://github.com/norlab-ulaval/ORB_SLAM3_ROS2.git
+
+WORKDIR /colcon_ws
+RUN . /opt/ros/humble/setup.sh && colcon build --symlink-install --packages-select orbslam3 
 
 RUN echo "\n\
     source /opt/ros/humble/setup.bash\n\
     source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash\n\
-    source /opt/install/local_setup.bash\n\
-    source /opt/install/setup.bash" >> /root/.bashrc
+    source /colcon_ws/install/local_setup.bash\n\
+    source /colcon_ws/install/setup.bash" >> /root/.bashrc
 
 # ROS2 workspace
 WORKDIR /ros2_ws/src

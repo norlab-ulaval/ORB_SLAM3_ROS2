@@ -11,7 +11,7 @@ using std::placeholders::_2;
 
 StereoSlamNode::StereoSlamNode(ORB_SLAM3::System* pSLAM, const string &strSettingsFile, const string &strDoRectify)
 :   Node("ORB_SLAM3_ROS2"),
-    m_SLAM(pSLAM),
+    m_SLAM(pSLAM)
 {
     stringstream ss(strDoRectify);
     ss >> boolalpha >> doRectify;

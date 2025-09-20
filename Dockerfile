@@ -20,14 +20,19 @@ RUN pip3 install --no-cache-dir wheel
 WORKDIR /opt
 RUN git clone --recursive https://github.com/stevenlovegrove/Pangolin.git && \
     cd Pangolin && \
+    git checkout eb51fea && \
+    git submodule update --init --recursive && \
     mkdir build && cd build && \
-    cmake .. -DCMAKE_BUILD_TYPE=Release -GNinja && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -GNinja \
+    -DCMAKE_CXX_FLAGS="-Wno-error=type-limits -Wno-type-limits" && \
     ninja && ninja install
 
 # Clone ORB_SLAM3 source
 WORKDIR /opt
 RUN git clone https://github.com/zang09/ORB-SLAM3-STEREO-FIXED.git ORB_SLAM3 && \
     cd ORB_SLAM3 && \
+    git checkout f8ac791 && \
+    git submodule update --init --recursive && \
     chmod +x build.sh && \
     ./build.sh
 

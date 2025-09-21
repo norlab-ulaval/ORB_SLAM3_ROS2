@@ -55,18 +55,15 @@ RUN apt-get update && apt-get install -y \
 
 RUN mkdir -p /colcon_ws/src
 
-WORKDIR /colcon_ws/src
-RUN git clone -b humble https://github.com/norlab-ulaval/ORB_SLAM3_ROS2.git
+RUN cd /colcon_ws/src && git clone -b humble https://github.com/norlab-ulaval/ORB_SLAM3_ROS2.git
 
-WORKDIR /colcon_ws
-RUN  . /opt/ros/humble/setup.sh && colcon build --symlink-install
+RUN cd /colcon_ws/src/ORB_SLAM3_ROS2/vocabulary \
+    && tar -xzvf ORBvoc.txt.tar.gz \
+    && rm ORBvoc.txt.tar.gz
 
-WORKDIR /colcon_ws/src/ORB_SLAM3_ROS2/vocabulary
-RUN tar -xzvf ORBvoc.txt.tar.gz
+RUN . /opt/ros/humble/setup.sh && cd /colcon_ws && colcon build --symlink-install
 
 WORKDIR /
-
-ENV ROS_DOMAIN_ID=0
 STOPSIGNAL SIGINT
 
 CMD ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /colcon_ws/install/setup.bash && ros2 launch  --noninteractive orbslam3 orb-slam3.launch.py"]

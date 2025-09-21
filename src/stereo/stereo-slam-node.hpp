@@ -21,9 +21,11 @@
 class StereoSlamNode : public rclcpp::Node
 {
 public:
-    StereoSlamNode(ORB_SLAM3::System* pSLAM, const string &strSettingsFile, const string &strDoRectify);
+    StereoSlamNode();
 
     ~StereoSlamNode();
+
+    void saveMapOnShutdown();
 
 private:
     using ImageMsg = sensor_msgs::msg::Image;
@@ -31,9 +33,10 @@ private:
 
     void GrabStereo(const sensor_msgs::msg::Image::SharedPtr msgRGB, const sensor_msgs::msg::Image::SharedPtr msgD);
 
-    ORB_SLAM3::System* m_SLAM;
+    std::unique_ptr<ORB_SLAM3::System> m_SLAM;
+    std::string m_output_folder;
 
-    bool doRectify;
+    bool m_rectify;
     cv::Mat M1l,M2l,M1r,M2r;
 
     cv_bridge::CvImageConstPtr cv_ptrLeft;

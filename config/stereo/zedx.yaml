@@ -1,6 +1,6 @@
 %YAML:1.0
 
-#Atlas: true
+Atlas: true
 #System.SaveAtlasToFile: "ORB_SLAM3_ROS2/test_file"
 #System.LoadAtlasFromFile: "ORB_SLAM3_ROS2/test_file"
 #System.LocalizationMode: true
@@ -47,7 +47,7 @@ Tlr: !!opencv-matrix
 
 # Lapping area between images (We must calculate)
 #Camera.lappingBegin: 0
-#Camera.lappingEnd: 847 
+#Camera.lappingEnd: 847
 
 #Camera2.lappingBegin: 0
 #Camera2.lappingEnd: 847
@@ -56,7 +56,7 @@ Tlr: !!opencv-matrix
 Camera.width: 1920
 Camera.height: 1200
 
-# Camera frames per second 
+# Camera frames per second
 Camera.fps: 10.0
 
 # Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
@@ -77,16 +77,16 @@ Camera.bf: 88.346972892578
 # ORB Extractor: Number of features per image
 ORBextractor.nFeatures: 2000 # Tested with 1250
 
-# ORB Extractor: Scale factor between levels in the scale pyramid 	
+# ORB Extractor: Scale factor between levels in the scale pyramid
 ORBextractor.scaleFactor: 1.2
 
-# ORB Extractor: Number of levels in the scale pyramid	
+# ORB Extractor: Number of levels in the scale pyramid
 ORBextractor.nLevels: 8
 
 # ORB Extractor: Fast threshold
 # Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
 # Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
-# You can lower these values if your images have low contrast			
+# You can lower these values if your images have low contrast
 ORBextractor.iniThFAST: 12 # 20
 ORBextractor.minThFAST: 7 # 7
 

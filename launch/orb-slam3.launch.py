@@ -18,6 +18,13 @@ STORAGE_PATH = os.getenv("STORAGE_PATH")
 INPUT_IMU_BIAS_FILE = os.path.join("/", "calib", "imu.json")
 IMU_TYPE = "vectornav"  # or 'xsens'
 
+if IS_MAPPING is None:
+    print("IS_MAPPING is not set")
+    exit(1)
+elif STORAGE_PATH is None:
+    print("STORAGE_PATH is not set")
+    exit(1)
+
 map_name = "orb_slam3_atlas"
 
 def generate_launch_description():

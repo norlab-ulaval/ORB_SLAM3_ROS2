@@ -64,9 +64,9 @@ RUN  . /opt/ros/humble/setup.sh && colcon build --symlink-install
 WORKDIR /colcon_ws/src/ORB_SLAM3_ROS2/vocabulary
 RUN tar -xzvf ORBvoc.txt.tar.gz
 
-WORKDIR /colcon_ws/src
+WORKDIR /
 
 ENV ROS_DOMAIN_ID=0
 STOPSIGNAL SIGINT
 
-CMD ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /colcon_ws/install/local_setup.bash && source /colcon_ws/install/setup.bash && ros2 run orbslam3 stereo /colcon_ws/src/ORB_SLAM3_ROS2/vocabulary/ORBvoc.txt /colcon_ws/src/ORB_SLAM3_ROS2/config/stereo/zedx.yaml false --ros-args -p use_sim_time:=true"]
+CMD ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /colcon_ws/install/setup.bash && ros2 launch  --noninteractive orbslam3 orb-slam3.launch.py"]

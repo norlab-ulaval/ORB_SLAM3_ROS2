@@ -104,8 +104,8 @@ void StereoSlamNode::saveMapOnShutdown()
     }
 
     // Save camera trajectory
-    RCLCPP_INFO(this->get_logger(), "Saving camera trajectory to %s", (m_output_folder + "/KeyFrameTrajectory.txt").c_str());
-    m_SLAM->SaveKeyFrameTrajectoryTUM(m_output_folder + "/KeyFrameTrajectory.txt");
+    RCLCPP_INFO(this->get_logger(), "Saving camera trajectory to %s", (m_output_folder + "/trajectory.txt").c_str());
+    m_SLAM->SaveKeyFrameTrajectoryTUM(m_output_folder + "/trajectory.txt");
 
     // Get all map points
     std::vector<ORB_SLAM3::MapPoint*> vpMPs = m_SLAM->GetTrackedMapPoints();

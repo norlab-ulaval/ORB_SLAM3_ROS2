@@ -17,11 +17,11 @@ Camera.cx: 936.5038452148438
 Camera.cy: 594.3272705078125
 
 # Kannala-Brandt distortion parameters
-Camera.k1: -0.0107462
-Camera.k2: -0.0354004
-Camera.p1: -0.00023542
-Camera.p2: 0.000173096
-Camera.k3: 0.00980669
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
+Camera.k3: 0.0
 
 # Lapping area between images (We must calculate)
 #Camera.lappingBegin: 0

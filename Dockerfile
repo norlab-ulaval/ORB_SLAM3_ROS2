@@ -33,6 +33,8 @@ RUN git clone https://github.com/zang09/ORB-SLAM3-STEREO-FIXED.git ORB_SLAM3 && 
     cd ORB_SLAM3 && \
     git checkout f8ac791 && \
     git submodule update --init --recursive && \
+    sed -i '/float GetImageScale();/a \
+    \ \ \ \ Atlas* GetAtlas() { return mpAtlas; }' include/System.h && \
     chmod +x build.sh && \
     ./build.sh
 

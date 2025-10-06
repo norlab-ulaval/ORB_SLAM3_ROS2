@@ -4,24 +4,44 @@
 
 using std::placeholders::_1;
 
-StereoInertialNode::StereoInertialNode(ORB_SLAM3::System *SLAM, const string &strSettingsFile, const string &strDoRectify, const string &strDoEqual) :
-    Node("ORB_SLAM3_ROS2"),
-    SLAM_(SLAM)
+StereoInertialNode::StereoInertialNode() :
+    Node("ORB_SLAM3_ROS2")
 {
-    stringstream ss_rec(strDoRectify);
-    ss_rec >> boolalpha >> doRectify_;
+    this->declare_parameter<std::string>("config", "");
+    this->declare_parameter<std::string>("vocabulary", "");
+    this->declare_parameter<std::string>("output_folder", "");
+    this->declare_parameter<bool>("m_rectify", false);
+    this->declace_parameter<bool>("m_equal", false);
+    this->declare_parameter<bool>("visualization", false);
 
-    stringstream ss_eq(strDoEqual);
-    ss_eq >> boolalpha >> doEqual_;
+    // Get parameter values
+    std::string config_file = this->get_parameter("config").as_string();
+    std::string vocabulary_file = this->get_parameter("vocabulary").as_string();
+    m_output_folder = this->get_parameter("output_folder").as_string();
+    bool m_rectify = this->get_parameter("m_rectify").as_bool();
+    bool m_equal = this->get_parameter("m_equal").as_bool();
+    bool visualization = this->get_parameter("visualization").as_bool();
 
-    bClahe_ = doEqual_;
-    std::cout << "Rectify: " << doRectify_ << std::endl;
-    std::cout << "Equal: " << doEqual_ << std::endl;
+    bClahe_ = m_equal;
 
-    if (doRectify_)
+    if (config_file.empty()) {
+            RCLCPP_ERROR(this->get_logger(), "config parameter is required but not provided");
+            rclcpp::shutdown();
+            return;
+        }
+
+    if (vocabulary_file.empty()) {
+        RCLCPP_ERROR(this->get_logger(), "vocabulary parameter is required but not provided");
+        rclcpp::shutdown();
+        return;
+    }
+
+    SLAM_ = std::make_unique<ORB_SLAM3::System>(vocabulary_file, config_file, ORB_SLAM3::System::IMU_STEREO, visualization);
+
+    if (m_rectify)
     {
         // Load settings related to stereo calibration
-        cv::FileStorage fsSettings(strSettingsFile, cv::FileStorage::READ);
+        cv::FileStorage fsSettings(config_file, cv::FileStorage::READ);
         if (!fsSettings.isOpened())
         {
             cerr << "ERROR: Wrong path to settings" << endl;
@@ -57,9 +77,12 @@ StereoInertialNode::StereoInertialNode(ORB_SLAM3::System *SLAM, const string &st
         cv::initUndistortRectifyMap(K_r, D_r, R_r, P_r.rowRange(0, 3).colRange(0, 3), cv::Size(cols_r, rows_r), CV_32F, M1r_, M2r_);
     }
 
+    pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+        "camera_pose", 10);
+
     subImu_ = this->create_subscription<ImuMsg>("imu", 1000, std::bind(&StereoInertialNode::GrabImu, this, _1));
-    subImgLeft_ = this->create_subscription<ImageMsg>("camera/left", 100, std::bind(&StereoInertialNode::GrabImageLeft, this, _1));
-    subImgRight_ = this->create_subscription<ImageMsg>("camera/right", 100, std::bind(&StereoInertialNode::GrabImageRight, this, _1));
+    subImgLeft_ = this->create_subscription<ImageMsg>("image_left", 100, std::bind(&StereoInertialNode::GrabImageLeft, this, _1));
+    subImgRight_ = this->create_subscription<ImageMsg>("image_right", 100, std::bind(&StereoInertialNode::GrabImageRight, this, _1));
 
     syncThread_ = new std::thread(&StereoInertialNode::SyncWithImu, this);
 }
@@ -206,8 +229,35 @@ void StereoInertialNode::SyncWithImu()
                 cv::remap(imLeft, imLeft, M1l_, M2l_, cv::INTER_LINEAR);
                 cv::remap(imRight, imRight, M1r_, M2r_, cv::INTER_LINEAR);
             }
+            
+            Sophus::SE3f Tcw;
+            Tcw = SLAM_->TrackStereo(imLeft, imRight, tImLeft, vImuMeas);
 
-            SLAM_->TrackStereo(imLeft, imRight, tImLeft, vImuMeas);
+            if (Tcw.translation().norm() != 0)  // use translation norm as a simple check
+            {
+                Eigen::Matrix3f Rwc = Tcw.rotationMatrix().transpose();  // world <- camera
+                Eigen::Vector3f twc = -Rwc * Tcw.translation();
+
+                tf2::Matrix3x3 tf2_R(
+                    Rwc(0,0), Rwc(0,1), Rwc(0,2),
+                    Rwc(1,0), Rwc(1,1), Rwc(1,2),
+                    Rwc(2,0), Rwc(2,1), Rwc(2,2)
+                );
+
+                tf2::Quaternion q;
+                tf2_R.getRotation(q);
+
+                geometry_msgs::msg::PoseStamped pose_msg;
+                pose_msg.header.stamp = msgLeft->header.stamp;
+                pose_msg.header.frame_id = msgLeft->header.frame_id;
+
+                pose_msg.pose.position.x = twc(0);
+                pose_msg.pose.position.y = twc(1);
+                pose_msg.pose.position.z = twc(2);
+                pose_msg.pose.orientation = tf2::toMsg(q);
+
+                pose_pub_->publish(pose_msg);
+            }
 
             std::chrono::milliseconds tSleep(1);
             std::this_thread::sleep_for(tSleep);

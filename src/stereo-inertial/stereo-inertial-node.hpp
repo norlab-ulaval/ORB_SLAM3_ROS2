@@ -5,6 +5,11 @@
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 
+#include "message_filters/subscriber.h"
+#include "message_filters/synchronizer.h"
+#include "message_filters/sync_policies/approximate_time.h"
+#include <geometry_msgs/msg/pose_stamped.hpp>
+
 #include <cv_bridge/cv_bridge.h>
 
 #include "System.h"
@@ -51,6 +56,8 @@ private:
 
     bool bClahe_;
     cv::Ptr<cv::CLAHE> clahe_ = cv::createCLAHE(3.0, cv::Size(8, 8));
+
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
 };
 
 #endif

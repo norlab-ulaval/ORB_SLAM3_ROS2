@@ -58,7 +58,7 @@ def generate_launch_description():
             "vn100_ns", default_value=IMU_TYPE
         )
 
-        config_file = os.path.join(share_folder, "config", "_vn100.yaml")
+        config_file = os.path.join(share_folder, "stereo-intertial", "_vn100.yaml")
 
         print(f"Biases: x={bias_x}, y={bias_y}, z={bias_z}")
         bias_compensator_node = Node(

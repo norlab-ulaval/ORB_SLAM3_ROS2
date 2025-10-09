@@ -25,8 +25,9 @@ using ImageMsg = sensor_msgs::msg::Image;
 class StereoInertialNode : public rclcpp::Node
 {
 public:
-    StereoInertialNode(ORB_SLAM3::System* pSLAM, const string &strSettingsFile, const string &strDoRectify, const string &strDoEqual);
+    StereoInertialNode();
     ~StereoInertialNode();
+    void saveMapOnShutdown();
 
 private:
     void GrabImu(const ImuMsg::SharedPtr msg);
@@ -39,8 +40,10 @@ private:
     rclcpp::Subscription<ImageMsg>::SharedPtr subImgLeft_;
     rclcpp::Subscription<ImageMsg>::SharedPtr subImgRight_;
 
-    ORB_SLAM3::System *SLAM_;
+    std::unique_ptr<ORB_SLAM3::System> SLAM_;
     std::thread *syncThread_;
+
+    std::string m_output_folder;
 
     // IMU
     queue<ImuMsg::SharedPtr> imuBuf_;

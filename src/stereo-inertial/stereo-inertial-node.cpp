@@ -1,6 +1,11 @@
 #include "stereo-inertial-node.hpp"
 
-#include <opencv2/core/core.hpp>
+#include<opencv2/core/core.hpp>
+#include <cv_bridge/cv_bridge.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <filesystem>
 
 using std::placeholders::_1;
 
@@ -11,7 +16,7 @@ StereoInertialNode::StereoInertialNode() :
     this->declare_parameter<std::string>("vocabulary", "");
     this->declare_parameter<std::string>("output_folder", "");
     this->declare_parameter<bool>("m_rectify", false);
-    this->declace_parameter<bool>("m_equal", false);
+    this->declare_parameter<bool>("m_equal", false);
     this->declare_parameter<bool>("visualization", false);
 
     // Get parameter values
@@ -99,6 +104,41 @@ StereoInertialNode::~StereoInertialNode()
     // Save camera trajectory
     SLAM_->SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
 }
+
+void StereoInertialNode::saveMapOnShutdown()
+{
+    // Create output folder if it doesn't exist
+    std::string output_folder = m_output_folder;
+    if (!std::filesystem::exists(output_folder))
+    {
+        std::filesystem::create_directories(output_folder);
+    }
+
+    // // Save camera trajectory
+    RCLCPP_INFO(this->get_logger(), "Saving camera trajectory to %s", (m_output_folder + "/trajectory.txt").c_str());
+    SLAM_->SaveKeyFrameTrajectoryTUM(m_output_folder + "/trajectory.txt");
+
+    // Get all map points
+    ORB_SLAM3::Atlas* atlas = nullptr;
+    atlas = SLAM_->GetAtlas();
+
+    // Save to file
+    RCLCPP_INFO(this->get_logger(), "Saving point cloud to %s", (m_output_folder + "/pointcloud.csv").c_str());
+    std::string filename = m_output_folder + "/pointcloud.csv";
+    std::ofstream file(filename);
+    for(ORB_SLAM3::MapPoint* pMP : atlas->GetAllMapPoints())
+    {
+        if(pMP && !pMP->isBad())
+        {
+            Eigen::Vector3f pos = pMP->GetWorldPos();
+            file << pos.x() << "," << pos.y() << "," << pos.z() << std::endl;
+        }
+    }
+    file.close();
+    RCLCPP_INFO(this->get_logger(), "Done Saving Map");
+}
+
+
 
 void StereoInertialNode::GrabImu(const ImuMsg::SharedPtr msg)
 {
@@ -248,8 +288,8 @@ void StereoInertialNode::SyncWithImu()
                 tf2_R.getRotation(q);
 
                 geometry_msgs::msg::PoseStamped pose_msg;
-                pose_msg.header.stamp = msgLeft->header.stamp;
-                pose_msg.header.frame_id = msgLeft->header.frame_id;
+                pose_msg.header.stamp = imuBuf_.back()->header.stamp;
+                pose_msg.header.frame_id = imuBuf_.back()->header.frame_id;
 
                 pose_msg.pose.position.x = twc(0);
                 pose_msg.pose.position.y = twc(1);

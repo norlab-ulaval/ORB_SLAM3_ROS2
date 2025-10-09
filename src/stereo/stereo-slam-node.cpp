@@ -108,13 +108,14 @@ void StereoSlamNode::saveMapOnShutdown()
     m_SLAM->SaveKeyFrameTrajectoryTUM(m_output_folder + "/trajectory.txt");
 
     // Get all map points
-    std::vector<ORB_SLAM3::MapPoint*> vpMPs = m_SLAM->GetTrackedMapPoints();
+    ORB_SLAM3::Atlas* atlas = nullptr;
+    atlas = m_SLAM->GetAtlas();
 
     // Save to file
     RCLCPP_INFO(this->get_logger(), "Saving point cloud to %s", (m_output_folder + "/pointcloud.csv").c_str());
     std::string filename = m_output_folder + "/pointcloud.csv";
     std::ofstream file(filename);
-    for(ORB_SLAM3::MapPoint* pMP : vpMPs)
+    for(ORB_SLAM3::MapPoint* pMP : atlas->GetAllMapPoints())
     {
         if(pMP && !pMP->isBad())
         {

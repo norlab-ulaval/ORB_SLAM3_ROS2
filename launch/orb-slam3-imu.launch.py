@@ -81,7 +81,7 @@ def generate_launch_description():
 
     orbslam3_node = Node(
         package="orbslam3",
-        executable="stereo",
+        executable="stereo-inertial",
         name="orbslam3_stereo",
         output="screen",
         sigterm_timeout="30",  # Wait 30 seconds before escalating to SIGTERM
@@ -114,7 +114,7 @@ def generate_launch_description():
             ("camera_pose", "estimated_pose"),
             ("image_left", "zedx/left/image_rect"),
             ("image_right", "zedx/right/image_rect"),
-            ("imu", "vn100/data_raw"),
+            ("imu", "vectornav/data_raw"),
         ],
     )
     ld.add_action(orbslam3_node)

@@ -27,6 +27,7 @@ elif STORAGE_PATH is None:
 
 map_name = "orb_slam3_atlas"
 
+
 def generate_launch_description():
     ld = LaunchDescription()
     share_folder = get_package_share_directory("orbslam3")
@@ -51,6 +52,60 @@ def generate_launch_description():
         print("No bias file found, using default values")
 
     print(f"Biases: x={bias_x}, y={bias_y}, z={bias_z}")
+    if IMU_TYPE == "vectornav":
+        namespace = LaunchConfiguration("vn100_ns")
+        vectornav_namespace_launch_arg = DeclareLaunchArgument(
+            "vn100_ns", default_value=IMU_TYPE
+        )
+
+        config_file = os.path.join(share_folder, "config", "_vn100.yaml")
+
+        print(f"Biases: x={bias_x}, y={bias_y}, z={bias_z}")
+        bias_compensator_node = Node(
+            package="norlab_imu_tools",
+            executable="imu_bias_compensator_node",
+            name="bias_compensator",
+            namespace=namespace,
+            output="both",
+            parameters=[
+                config_file,
+                {"bias_x": bias_x, "bias_y": bias_y, "bias_z": bias_z},
+            ],
+            remappings=[
+                ("imu_topic_in", "data_raw"),
+                ("bias_topic_in", "bias"),
+                ("imu_topic_out", "data_unbiased"),
+            ],
+            arguments=[
+                "--ros-args",
+                "--log-level",
+                "warn",
+            ],
+        )
+
+        filter_madgwick_node = Node(
+            package="imu_filter_madgwick",
+            executable="imu_filter_madgwick_node",
+            name="madgwick_filter",
+            namespace=namespace,
+            output="both",
+            parameters=[config_file],
+            remappings=[
+                ("imu/data_raw", "data_unbiased"),
+                ("imu/mag", "mag"),
+                ("imu/data", "data"),
+            ],
+            arguments=[
+                "--ros-args",
+                "--log-level",
+                "warn",
+            ],
+        )
+        ld.add_action(vectornav_namespace_launch_arg)
+        ld.add_action(bias_compensator_node)
+        ld.add_action(filter_madgwick_node)
+    elif IMU_TYPE == "xsens":
+        raise NotImplementedError("xsens IMU is not yet supported")
 
     default_config_file = os.path.join(
         share_folder,
@@ -114,7 +169,7 @@ def generate_launch_description():
             ("camera_pose", "estimated_pose"),
             ("image_left", "zedx/left/image_rect"),
             ("image_right", "zedx/right/image_rect"),
-            ("imu", "vectornav/data_raw"),
+            ("imu", "vectornav/data_unbiased"),
         ],
     )
     ld.add_action(orbslam3_node)

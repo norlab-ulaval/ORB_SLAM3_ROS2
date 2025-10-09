@@ -58,6 +58,7 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /colcon_ws/src
 
 RUN cd /colcon_ws/src && git clone -b humble https://github.com/norlab-ulaval/ORB_SLAM3_ROS2.git
+RUN git clone https://github.com/norlab-ulaval/imu_tools.git -b fomo /colcon_ws/src/imu_tools
 RUN git clone https://github.com/norlab-ulaval/norlab_imu_tools.git -b fomo /colcon_ws/src/norlab_imu_tools
 
 RUN rosdep update

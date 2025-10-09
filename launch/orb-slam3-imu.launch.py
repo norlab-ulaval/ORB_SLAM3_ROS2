@@ -25,7 +25,7 @@ elif STORAGE_PATH is None:
     print("STORAGE_PATH is not set")
     exit(1)
 
-map_name = os.path.join(STORAGE_PATH, "orb_slam3_atlas")
+map_name = "orb_slam3_atlas"
 
 
 def generate_launch_description():

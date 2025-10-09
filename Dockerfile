@@ -57,6 +57,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN mkdir -p /colcon_ws/src
 
+RUN echo "helo"
 RUN cd /colcon_ws/src && git clone -b humble https://github.com/norlab-ulaval/ORB_SLAM3_ROS2.git
 RUN git clone https://github.com/norlab-ulaval/imu_tools.git -b fomo /colcon_ws/src/imu_tools
 RUN git clone https://github.com/norlab-ulaval/norlab_imu_tools.git -b fomo /colcon_ws/src/norlab_imu_tools
@@ -72,4 +73,4 @@ RUN . /opt/ros/humble/setup.sh && cd /colcon_ws && colcon build --symlink-instal
 WORKDIR /
 STOPSIGNAL SIGINT
 
-CMD ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /colcon_ws/install/setup.bash && ros2 launch  --noninteractive orbslam3 orb-slam3-imu.launch.py"]
+CMD ["/bin/bash", "-c", "cd /data && source /opt/ros/humble/setup.bash && source /colcon_ws/install/setup.bash && ros2 launch  --noninteractive orbslam3 orb-slam3-imu.launch.py"]

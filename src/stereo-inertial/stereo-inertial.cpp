@@ -21,13 +21,13 @@ int main(int argc, char **argv)
     // Use a weak pointer to avoid keeping the node alive
     std::weak_ptr<StereoInertialNode> weak_node = node;
 
-    //context->add_on_shutdown_callback(
-    //    [weak_node]() {
-    //        if (auto n = weak_node.lock()) {
-    //            std::cout << "[stereo-inertial-3] [INFO] Received a shut down call" << std::endl;
-    //            n->saveMapOnShutdown();
-    //        }
-    //    });
+    context->add_on_shutdown_callback(
+        [weak_node]() {
+            if (auto n = weak_node.lock()) {
+                std::cout << "[stereo-inertial-3] [INFO] Received a shut down call" << std::endl;
+                n->saveMapOnShutdown();
+            }
+        });
 
     try {
         rclcpp::spin(node);

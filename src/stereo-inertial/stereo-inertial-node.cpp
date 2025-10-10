@@ -119,9 +119,6 @@ void StereoInertialNode::saveMapOnShutdown()
     ORB_SLAM3::Atlas* atlas = nullptr;
     atlas = SLAM_->GetAtlas();
 
-    RCLCPP_INFO(this->get_logger(), "Saving Atlas file");
-    SLAM_->SaveAtlas(1);
-
     // Save to file
     RCLCPP_INFO(this->get_logger(), "Saving point cloud to %s", (m_output_folder + "/pointcloud.csv").c_str());
     std::string filename = m_output_folder + "/pointcloud.csv";

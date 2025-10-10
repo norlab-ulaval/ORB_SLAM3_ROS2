@@ -99,9 +99,8 @@ StereoInertialNode::~StereoInertialNode()
     // syncThread_->join();
     // delete syncThread_;
 
-    // Stop all threads
-    // SLAM_->Shutdown();
-    //
+    SLAM_->Shutdown();
+
     std::string output_folder = m_output_folder;
     if (!std::filesystem::exists(output_folder))
     {

@@ -101,6 +101,35 @@ StereoInertialNode::~StereoInertialNode()
 
     // Stop all threads
     // SLAM_->Shutdown();
+    //
+    std::string output_folder = m_output_folder;
+    if (!std::filesystem::exists(output_folder))
+    {
+        std::filesystem::create_directories(output_folder);
+    }
+
+    // // Save camera trajectory
+    RCLCPP_INFO(this->get_logger(), "Saving camera trajectory to %s", (m_output_folder + "/trajectory.txt").c_str());
+    SLAM_->SaveKeyFrameTrajectoryTUM(m_output_folder + "/trajectory.txt");
+
+    // Get all map points
+    ORB_SLAM3::Atlas* atlas = nullptr;
+    atlas = SLAM_->GetAtlas();
+
+    // Save to file
+    RCLCPP_INFO(this->get_logger(), "Saving point cloud to %s", (m_output_folder + "/pointcloud.csv").c_str());
+    std::string filename = m_output_folder + "/pointcloud.csv";
+    std::ofstream file(filename);
+    for(ORB_SLAM3::MapPoint* pMP : atlas->GetAllMapPoints())
+    {
+        if(pMP && !pMP->isBad())
+        {
+            Eigen::Vector3f pos = pMP->GetWorldPos();
+            file << pos.x() << "," << pos.y() << "," << pos.z() << std::endl;
+        }
+    }
+    file.close();
+    RCLCPP_INFO(this->get_logger(), "Done Saving Map");
 }
 
 void StereoInertialNode::saveMapOnShutdown()

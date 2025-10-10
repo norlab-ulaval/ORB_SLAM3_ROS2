@@ -10,7 +10,7 @@
 using std::placeholders::_1;
 
 StereoInertialNode::StereoInertialNode() :
-    Node("ORB_SLAM3_ROS2")
+    Node("ORB_SLAM3_ROS2"), shutdown_requested_(false)
 {
     this->declare_parameter<std::string>("config", "");
     this->declare_parameter<std::string>("vocabulary", "");
@@ -95,13 +95,18 @@ StereoInertialNode::StereoInertialNode() :
 StereoInertialNode::~StereoInertialNode()
 {
     RCLCPP_INFO(this->get_logger(), "Entered_destructor");
-    // Delete sync thread
-    syncThread_->join();
-    delete syncThread_;
+    saveMapOnShutdown();
 }
 
 void StereoInertialNode::saveMapOnShutdown()
 {
+    // Signal sync thread to exit
+    shutdown_requested_ = true;
+
+    // Wait for sync thread to finish and delete it
+    syncThread_->join();
+    delete syncThread_;
+
     SLAM_->Shutdown();
 
     // Create output folder if it doesn't exist
@@ -111,7 +116,7 @@ void StereoInertialNode::saveMapOnShutdown()
         std::filesystem::create_directories(output_folder);
     }
 
-    // // Save camera trajectory
+    // Save camera trajectory
     RCLCPP_INFO(this->get_logger(), "Saving camera trajectory to %s", (m_output_folder + "/trajectory.txt").c_str());
     SLAM_->SaveKeyFrameTrajectoryTUM(m_output_folder + "/trajectory.txt");
 
@@ -195,7 +200,7 @@ void StereoInertialNode::SyncWithImu()
 {
     const double maxTimeDiff = 0.01;
 
-    while (1)
+    while (!shutdown_requested_)
     {
         cv::Mat imLeft, imRight;
         double tImLeft = 0, tImRight = 0;
@@ -296,6 +301,12 @@ void StereoInertialNode::SyncWithImu()
                 pose_pub_->publish(pose_msg);
             }
 
+            std::chrono::milliseconds tSleep(1);
+            std::this_thread::sleep_for(tSleep);
+        }
+        else
+        {
+            // Sleep when no data is available to prevent busy-waiting
             std::chrono::milliseconds tSleep(1);
             std::this_thread::sleep_for(tSleep);
         }

@@ -1,6 +1,7 @@
 #ifndef __STEREO_INERTIAL_NODE_HPP__
 #define __STEREO_INERTIAL_NODE_HPP__
 
+#include <atomic>
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/msg/imu.hpp"
@@ -61,6 +62,9 @@ private:
     cv::Ptr<cv::CLAHE> clahe_ = cv::createCLAHE(3.0, cv::Size(8, 8));
 
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
+
+    // Thread control
+    std::atomic<bool> shutdown_requested_;
 };
 
 #endif

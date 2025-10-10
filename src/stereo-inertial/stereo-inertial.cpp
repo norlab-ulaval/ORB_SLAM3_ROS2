@@ -25,7 +25,7 @@ int main(int argc, char **argv)
         [weak_node]() {
             if (auto n = weak_node.lock()) {
                 std::cout << "[stereo-inertial-3] [INFO] Received a shut down call" << std::endl;
-                n->saveMapOnShutdown();
+                // n->saveMapOnShutdown();
             }
         });
 

@@ -12,8 +12,7 @@ from launch.actions import (
 )
 from launch.event_handlers import OnProcessStart
 
-IS_MAPPING = os.getenv("IS_MAPPING")
-IS_MAPPING = IS_MAPPING == "1"
+IS_MAPPING = os.getenv("IS_MAPPING") == "1"
 STORAGE_PATH = os.getenv("STORAGE_PATH")
 INPUT_IMU_BIAS_FILE = os.path.join("/", "calib", "imu.json")
 IMU_TYPE = "vectornav"  # or 'xsens'
@@ -25,7 +24,8 @@ elif STORAGE_PATH is None:
     print("STORAGE_PATH is not set")
     exit(1)
 
-map_name = "orb_slam3_atlas"
+map_name = os.path.join(STORAGE_PATH, "orb_slam3_atlas")
+
 
 def generate_launch_description():
     ld = LaunchDescription()
@@ -36,21 +36,6 @@ def generate_launch_description():
             "use_sim_time", default_value="true", description="Use simulation time"
         )
     )
-
-    bias_x = 0.0
-    bias_y = 0.0
-    bias_z = 0.0
-
-    if os.path.exists(INPUT_IMU_BIAS_FILE):
-        with open(INPUT_IMU_BIAS_FILE, "r") as f:
-            bias_data = json.load(f)
-            bias_x = bias_data[IMU_TYPE]["angular_velocities"]["x"]
-            bias_y = bias_data[IMU_TYPE]["angular_velocities"]["y"]
-            bias_z = bias_data[IMU_TYPE]["angular_velocities"]["z"]
-    else:
-        print("No bias file found, using default values")
-
-    print(f"Biases: x={bias_x}, y={bias_y}, z={bias_z}")
 
     default_config_file = os.path.join(
         share_folder,

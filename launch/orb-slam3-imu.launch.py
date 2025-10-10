@@ -12,8 +12,7 @@ from launch.actions import (
 )
 from launch.event_handlers import OnProcessStart
 
-IS_MAPPING = os.getenv("IS_MAPPING")
-IS_MAPPING = IS_MAPPING == "1"
+IS_MAPPING = os.getenv("IS_MAPPING") == "1"
 STORAGE_PATH = os.getenv("STORAGE_PATH")
 INPUT_IMU_BIAS_FILE = os.path.join("/", "calib", "imu.json")
 IMU_TYPE = "vectornav"  # or 'xsens'
@@ -25,7 +24,7 @@ elif STORAGE_PATH is None:
     print("STORAGE_PATH is not set")
     exit(1)
 
-map_name = "orb_slam3_atlas"
+map_name = os.path.join(STORAGE_PATH, "orb_slam3_atlas")
 
 
 def generate_launch_description():
@@ -51,14 +50,15 @@ def generate_launch_description():
     else:
         print("No bias file found, using default values")
 
-    print(f"Biases: x={bias_x}, y={bias_y}, z={bias_z}")
     if IMU_TYPE == "vectornav":
         namespace = LaunchConfiguration("vn100_ns")
         vectornav_namespace_launch_arg = DeclareLaunchArgument(
             "vn100_ns", default_value=IMU_TYPE
         )
 
-        config_file = os.path.join(share_folder, "config", "stereo-inertial", "_vn100.yaml")
+        config_file = os.path.join(
+            share_folder, "config", "stereo-inertial", "_vn100.yaml"
+        )
 
         print(f"Biases: x={bias_x}, y={bias_y}, z={bias_z}")
         bias_compensator_node = Node(

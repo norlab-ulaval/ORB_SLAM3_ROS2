@@ -1,5 +1,4 @@
-ARG from=ros:humble-ros-base
-FROM ${from}
+FROM ros:humble-ros-base
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -29,12 +28,9 @@ RUN git clone --recursive https://github.com/stevenlovegrove/Pangolin.git && \
 
 # Clone ORB_SLAM3 source
 WORKDIR /opt
-RUN git clone https://github.com/zang09/ORB-SLAM3-STEREO-FIXED.git ORB_SLAM3 && \
+RUN git clone git@github.com:norlab-ulaval/ORB-SLAM3-STEREO-FIXED.git ORB_SLAM3 && \
     cd ORB_SLAM3 && \
-    git checkout f8ac791 && \
     git submodule update --init --recursive && \
-    sed -i '/float GetImageScale();/a \
-    \ \ \ \ Atlas* GetAtlas() { return mpAtlas; }' include/System.h && \
     chmod +x build.sh && \
     ./build.sh
 
@@ -57,8 +53,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN mkdir -p /colcon_ws/src
 
-RUN echo "helo"
-RUN cd /colcon_ws/src && git clone -b humble https://github.com/norlab-ulaval/ORB_SLAM3_ROS2.git
+RUN git clone -b humble https://github.com/norlab-ulaval/ORB_SLAM3_ROS2.git /colcon_ws/src/ORB_SLAM3_ROS2
 RUN git clone https://github.com/norlab-ulaval/imu_tools.git -b fomo /colcon_ws/src/imu_tools
 RUN git clone https://github.com/norlab-ulaval/norlab_imu_tools.git -b fomo /colcon_ws/src/norlab_imu_tools
 

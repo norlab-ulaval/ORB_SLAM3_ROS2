@@ -133,6 +133,8 @@ void StereoInertialNode::saveMapOnShutdown()
     }
     file.close();
     RCLCPP_INFO(this->get_logger(), "Done Saving Map");
+
+    SLAM_->Shutdown();
 }
 
 

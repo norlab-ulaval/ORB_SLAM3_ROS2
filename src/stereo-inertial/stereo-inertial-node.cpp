@@ -100,9 +100,6 @@ StereoInertialNode::~StereoInertialNode()
 
     // Stop all threads
     SLAM_->Shutdown();
-
-    // Save camera trajectory
-    SLAM_->SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
 }
 
 void StereoInertialNode::saveMapOnShutdown()
@@ -121,6 +118,9 @@ void StereoInertialNode::saveMapOnShutdown()
     // Get all map points
     ORB_SLAM3::Atlas* atlas = nullptr;
     atlas = SLAM_->GetAtlas();
+
+    RCLCPP_INFO(this->get_logger(), "Saving Atlas file");
+    SLAM_->SaveAtlas(FileType::BINARY_FILE);
 
     // Save to file
     RCLCPP_INFO(this->get_logger(), "Saving point cloud to %s", (m_output_folder + "/pointcloud.csv").c_str());

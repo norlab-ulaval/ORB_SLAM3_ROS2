@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     context->add_on_shutdown_callback(
         [weak_node]() {
             if (auto n = weak_node.lock()) {
-                RCLCPP_INFO(n->get_logger(), "Received a shut down call");
+                std::cout << "[stereo-inertial-3] [INFO] Received a shut down call" << std::endl;
                 n->saveMapOnShutdown();
             }
         });
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     try {
         rclcpp::spin(node);
     } catch (const std::exception & e) {
-        RCLCPP_ERROR(node->get_logger(), "Exception: %s", e.what());
+        std::cout << "[stereo-inertial-3] [ERROR] Exception" << e.what() << std::endl;
     }
 
     rclcpp::shutdown();

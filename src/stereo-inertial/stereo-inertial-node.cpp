@@ -225,7 +225,7 @@ void StereoInertialNode::SyncWithImu()
 
             if ((tImLeft - tImRight) > maxTimeDiff || (tImRight - tImLeft) > maxTimeDiff)
             {
-                std::cout << "big time difference" << std::endl;
+                RCLCPP_DEBUG(this->get_logger(), "Too big time difference between left and right images: %f", tImLeft - tImRight);
                 continue;
             }
             if (tImLeft > Utility::StampToSec(imuBuf_.back()->header.stamp))
@@ -269,7 +269,7 @@ void StereoInertialNode::SyncWithImu()
                 cv::remap(imLeft, imLeft, M1l_, M2l_, cv::INTER_LINEAR);
                 cv::remap(imRight, imRight, M1r_, M2r_, cv::INTER_LINEAR);
             }
-            
+
             Sophus::SE3f Tcw;
             Tcw = SLAM_->TrackStereo(imLeft, imRight, tImLeft, vImuMeas);
 

@@ -96,8 +96,8 @@ StereoInertialNode::~StereoInertialNode()
 {
     RCLCPP_INFO(this->get_logger(), "Entered_destructor");
     // Delete sync thread
-    syncThread_->join();
-    delete syncThread_;
+    // syncThread_->join();
+    // delete syncThread_;
 
     // Stop all threads
     // SLAM_->Shutdown();

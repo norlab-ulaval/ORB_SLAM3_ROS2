@@ -144,7 +144,7 @@ def generate_launch_description():
         arguments=[
             "--ros-args",
             "--log-level",
-            "debug",
+            "info",
             "--log-level",
             "rcl:=INFO",
             "--log-level",

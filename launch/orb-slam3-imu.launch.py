@@ -60,7 +60,7 @@ def generate_launch_description():
             share_folder, "config", "stereo-inertial", "_vn100.yaml"
         )
 
-        print(f"Biases: x={bias_x}, y={bias_y}, z={bias_z}")
+        print(f"Biases:\n  x={bias_x}\n  y={bias_y}\n  z={bias_z}\n")
         bias_compensator_node = Node(
             package="norlab_imu_tools",
             executable="imu_bias_compensator_node",
@@ -82,28 +82,8 @@ def generate_launch_description():
                 "warn",
             ],
         )
-
-        filter_madgwick_node = Node(
-            package="imu_filter_madgwick",
-            executable="imu_filter_madgwick_node",
-            name="madgwick_filter",
-            namespace=namespace,
-            output="both",
-            parameters=[config_file],
-            remappings=[
-                ("imu/data_raw", "data_unbiased"),
-                ("imu/mag", "mag"),
-                ("imu/data", "data"),
-            ],
-            arguments=[
-                "--ros-args",
-                "--log-level",
-                "warn",
-            ],
-        )
         ld.add_action(vectornav_namespace_launch_arg)
         ld.add_action(bias_compensator_node)
-        ld.add_action(filter_madgwick_node)
     elif IMU_TYPE == "xsens":
         raise NotImplementedError("xsens IMU is not yet supported")
 
@@ -120,7 +100,7 @@ def generate_launch_description():
         "temp.yaml",
     )
     print("Updating configuration file")
-    print("Copying default from zedx.yaml to temp.yaml")
+    print(f"Copying default from {default_config_file} to {temp_config_file}")
     with open(default_config_file, "r") as fin, open(temp_config_file, "w") as fout:
         lines = fin.readlines()
         for line in lines:

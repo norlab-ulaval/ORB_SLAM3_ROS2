@@ -17,7 +17,7 @@ Camera.cx: 936.5038452148438
 Camera.cy: 594.3272705078125
 
 # Kannala-Brandt distortion parameters
-Camera.k1: 0.0 
+Camera.k1: 0.0
 Camera.k2: 0.0
 Camera.p1: 0.0
 Camera.p2: 0.0
@@ -75,10 +75,10 @@ Tbc: !!opencv-matrix
    rows: 4
    cols: 4
    dt: f
-   data: [0.9999200,-0.0037583,-0.0120747,0.062,
-         0.0102515,-0.3181800,0.9479749,0.803,
-         -0.0074047,-0.9480228,-0.3181160,0.156,
-         0.0,0.0,0.0,1.0]
+   data: [0.9999023,-0.00055384,-0.01396742,0.05829737,
+          0.01307809,-0.31573685,0.94875666,0.9024112,
+          -0.00493549,-0.94884663,-0.31569876,0.16497196,
+          0.0,0.0,0.0,1.0]
 
 # Do not insert KFs when recently lost
 InsertKFsWhenLost: 0
@@ -96,16 +96,16 @@ IMU.Frequency: 200
 # ORB Extractor: Number of features per image
 ORBextractor.nFeatures: 4000
 
-# ORB Extractor: Scale factor between levels in the scale pyramid 	
+# ORB Extractor: Scale factor between levels in the scale pyramid
 ORBextractor.scaleFactor: 1.2
 
-# ORB Extractor: Number of levels in the scale pyramid	
+# ORB Extractor: Number of levels in the scale pyramid
 ORBextractor.nLevels: 13
 
 # ORB Extractor: Fast threshold
 # Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
 # Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
-# You can lower these values if your images have low contrast			
+# You can lower these values if your images have low contrast
 ORBextractor.iniThFAST: 12
 ORBextractor.minThFAST: 7
 

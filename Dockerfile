@@ -61,7 +61,7 @@ RUN cd /colcon_ws/src/ORB_SLAM3_ROS2/vocabulary \
     && tar -xzvf ORBvoc.txt.tar.gz \
     && rm ORBvoc.txt.tar.gz
 
-RUN . /opt/ros/humble/setup.sh && cd /colcon_ws && colcon build --symlink-install
+RUN . /opt/ros/humble/setup.sh && cd /colcon_ws && colcon build --symlink-install --cmake-args -DCMAKE_CXX_FLAGS="-w"
 
 WORKDIR /
 STOPSIGNAL SIGINT

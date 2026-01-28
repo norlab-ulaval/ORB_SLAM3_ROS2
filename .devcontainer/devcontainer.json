@@ -1,0 +1,37 @@
+{
+    "name": "ROS2 Humble Dev Container",
+    "image": "norlab/orbslam3",
+    "runArgs": [
+        "--network=host",
+        "--cap-add=SYS_PTRACE",
+        "--security-opt",
+        "seccomp=unconfined"
+    ],
+    "mounts": [
+        "source=${localWorkspaceFolder}/orbslam3,target=/opt/ORB_SLAM3,type=bind",
+        "source=${localWorkspaceFolder},target=/ros2_ws/src/ORB_SLAM3_ROS2,type=bind"
+    ],
+    "containerEnv": {
+        "DISPLAY": "host.docker.internal:0",
+        "NAMESPACE": "navtech_radar_slam",
+        "PATH": "/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/ros/humble/bin:/workspaces/navtech-radar-slam/install/bin"
+    },
+    "remoteUser": "vscode",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-iot.vscode-ros",
+                "twxs.cmake", 
+                "mhutchie.git-graph"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
+        }
+    },
+    "postCreateCommand": "sudo rosdep init && rosdep update && echo 'source /opt/ros/humble/setup.bash' >> ~/.bashrc",
+}

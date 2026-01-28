@@ -6,3 +6,4 @@ install
 log
 process_images/build
 data
+*__pycache__

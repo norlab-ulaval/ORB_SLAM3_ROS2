@@ -1,3 +1,8 @@
 vocabulary/ORBvoc.txt
 config/isaac
 .vscode
+build
+install
+log
+process_images/build
+data

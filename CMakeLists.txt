@@ -34,7 +34,8 @@ find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Sophus REQUIRED)
 find_package(Pangolin REQUIRED CONFIG)
-
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 # If ORB_SLAM3 is a separate library you built, ensure its path is set
 # find_package(ORB_SLAM3 REQUIRED)
 
@@ -79,6 +80,8 @@ macro(add_orbslam3_node NAME)
     cv_bridge
     message_filters
     image_transport
+    tf2_ros
+    tf2_geometry_msgs
   )
 endmacro()
 

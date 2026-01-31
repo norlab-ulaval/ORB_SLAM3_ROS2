@@ -10,31 +10,31 @@
 
 int main(int argc, char **argv)
 {
-    if(argc < 4)
-    {
-        std::cerr << "\nUsage: ros2 run orbslam stereo path_to_vocabulary path_to_settings do_rectify [do_equalize]" << std::endl;
-        rclcpp::shutdown();
-        return 1;
-    }
-
-    if(argc == 4)
-    {
-        argv[4] = "false";
-    }
-
     rclcpp::init(argc, argv);
 
-    // malloc error using new.. try shared ptr
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
+    auto node = std::make_shared<StereoInertialNode>();
 
-    bool visualization = true;
-    ORB_SLAM3::System pSLAM(argv[1], argv[2], ORB_SLAM3::System::IMU_STEREO, visualization);
+    // Register shutdown callback on the global context
+    auto context = rclcpp::contexts::get_global_default_context();
 
-    auto node = std::make_shared<StereoInertialNode>(&pSLAM, argv[2], argv[3], argv[4]);
-    std::cout << "============================" << std::endl;
+    // Use a weak pointer to avoid keeping the node alive
+    std::weak_ptr<StereoInertialNode> weak_node = node;
 
-    rclcpp::spin(node);
+    context->add_on_shutdown_callback(
+        [weak_node]() {
+            if (auto n = weak_node.lock()) {
+                std::cout << "[stereo-inertial-3] [INFO] Received a shut down call" << std::endl;
+                // n->saveMapOnShutdown();
+            }
+        });
+
+    try {
+        rclcpp::spin(node);
+    } catch (const std::exception & e) {
+        std::cout << "[stereo-inertial-3] [ERROR] Exception" << e.what() << std::endl;
+    }
+    // node.reset();
     rclcpp::shutdown();
-
     return 0;
 }

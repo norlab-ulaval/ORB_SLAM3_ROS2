@@ -1,4 +1,3 @@
-#include<iostream>
 #include<algorithm>
 #include<fstream>
 #include<chrono>
@@ -10,25 +9,31 @@
 
 int main(int argc, char **argv)
 {
-    if(argc < 4)
-    {
-        std::cerr << "\nUsage: ros2 run orbslam stereo path_to_vocabulary path_to_settings do_rectify" << std::endl;
-        return 1;
-    }
-
     rclcpp::init(argc, argv);
 
-    // malloc error using new.. try shared ptr
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
+    auto node = std::make_shared<StereoSlamNode>();
 
-    bool visualization = true;
-    ORB_SLAM3::System pSLAM(argv[1], argv[2], ORB_SLAM3::System::STEREO, visualization);
+    // Register shutdown callback on the global context
+    auto context = rclcpp::contexts::get_global_default_context();
 
-    auto node = std::make_shared<StereoSlamNode>(&pSLAM, argv[2], argv[3]);
-    std::cout << "============================ " << std::endl;
+    // Use a weak pointer to avoid keeping the node alive
+    std::weak_ptr<StereoSlamNode> weak_node = node;
 
-    rclcpp::spin(node);
+    context->add_on_shutdown_callback(
+        [weak_node]() {
+            if (auto n = weak_node.lock()) {
+                RCLCPP_INFO(n->get_logger(), "Received a shut down call");
+                n->saveMapOnShutdown();
+            }
+        });
+
+    try {
+        rclcpp::spin(node);
+    } catch (const std::exception & e) {
+        RCLCPP_ERROR(node->get_logger(), "Exception: %s", e.what());
+    }
+
     rclcpp::shutdown();
-
     return 0;
 }

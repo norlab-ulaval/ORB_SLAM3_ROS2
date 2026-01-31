@@ -7,6 +7,7 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
+#include <geometry_msgs/msg/pose_stamped.hpp>
 
 #include <cv_bridge/cv_bridge.hpp>
 
@@ -20,9 +21,11 @@
 class StereoSlamNode : public rclcpp::Node
 {
 public:
-    StereoSlamNode(ORB_SLAM3::System* pSLAM, const string &strSettingsFile, const string &strDoRectify);
+    StereoSlamNode();
 
     ~StereoSlamNode();
+
+    void saveMapOnShutdown();
 
 private:
     using ImageMsg = sensor_msgs::msg::Image;
@@ -30,9 +33,10 @@ private:
 
     void GrabStereo(const sensor_msgs::msg::Image::SharedPtr msgRGB, const sensor_msgs::msg::Image::SharedPtr msgD);
 
-    ORB_SLAM3::System* m_SLAM;
+    std::unique_ptr<ORB_SLAM3::System> m_SLAM;
+    std::string m_output_folder;
 
-    bool doRectify;
+    bool m_rectify;
     cv::Mat M1l,M2l,M1r,M2r;
 
     cv_bridge::CvImageConstPtr cv_ptrLeft;
@@ -42,6 +46,8 @@ private:
     std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image> > right_sub;
 
     std::shared_ptr<message_filters::Synchronizer<approximate_sync_policy> > syncApproximate;
+
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
 };
 
 #endif
